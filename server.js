@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
 const { pool } = require("./dbConfig");
+const path = require('path');
 const { request } = require('http');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
@@ -16,6 +17,7 @@ const PORT = process.env.PORT || 5000;
 // middlewares
 app.set('view engine', 'ejs');  // use ejs view engine to render ejs files
 app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 app.use(session({
   secret: 'this is the way',
   resave: false,  // if nothing is changed, do not resave
@@ -25,6 +27,8 @@ app.use(session({
 app.use(passport.initialize());  // sets up passport to use in our app
 app.use(passport.session());
 app.use(flash());  // use flash messages
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/public', express.static('public'));
 
 app.get('/', (req, res) => {
   res.render("index");
@@ -38,8 +42,16 @@ app.get('/users/login', checkAuthenticated, (req, res) => {
   res.render("login");
 });
 
+app.get('/users/adminlogin', checkAuthenticated, (req, res) => {
+  res.render("adminlogin");
+});
+
 app.get('/users/dashboard', checkNotAuthenticated, (req, res) => {
   res.render("dashboard", { user: req.user.name });
+});
+
+app.get('/users/admindash', checkAuthorization, (req, res) => {
+  res.render("admindash", { user: req.user.name });
 });
 
 app.get('/users/logout', checkNotAuthenticated, async (req, res) => {
@@ -115,11 +127,23 @@ app.post('/users/register', async (req, res) => {
   }
 });
 
+
+// regular user login
 app.post(
   "/users/login", 
   passport.authenticate('local', {
     successRedirect: "/users/dashboard",
     failureRedirect: "/users/login",
+    failureFlash: true  // if authentication fails, pass in message (from err)
+  })
+);
+
+// admin user login
+app.post(
+  "/users/adminlogin", 
+  passport.authenticate('local', {
+    successRedirect: "/users/admindash",
+    failureRedirect: "/users/adminlogin",
     failureFlash: true  // if authentication fails, pass in message (from err)
   })
 );
@@ -137,6 +161,15 @@ function checkNotAuthenticated(req, res, next) {
     return next();
   }
   res.redirect('/users/login');
+}
+
+
+// if user is admin
+function checkAuthorization(req, res, next) {
+  if (req.isAuthenticated() && (req.user.admin = 't')) {
+      return next();
+  }
+  return res.redirect('/users/dashboard');
 }
 
 app.listen(PORT, () => console.log(`Listening on ${ PORT }`));

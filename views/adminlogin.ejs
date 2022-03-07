@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <title>Login</title>
+    <title>Admin Login</title>
     <link rel="stylesheet" href="/public/stylesheets/mainCSS.css">
   </head>
   <body>
     <div class="background">
       <br>
-      <h1 class="header">Login</h1>
+      <h1 class="header">Admin Login</h1>
       <ul>
         <% if (messages.success_msg) { %>
           <li><%=messages.success_msg %></li>
@@ -21,7 +21,7 @@
           <li><%=messages.error %></li>
         <% } %>
       </ul>
-      <form action="/users/login" method="POST">
+      <form action="/users/adminlogin" method="POST">
       <div>
         <input type="email" class="inputbox" id="email" name="email" placeholder="Email" required /> 
       </div>
@@ -37,7 +37,7 @@
       <a class="bottomlink" href="/users/register">Create a new account</a>
       <br>
       <br>
-      </form>
     </div>
+  </form>
   </body>
 </html>
